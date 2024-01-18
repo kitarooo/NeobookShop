@@ -8,9 +8,9 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProductFullDescription {
+public class ProductFullDescriptionResponse {
     String productName;
     String description;
     String imageUrl;
-    
+    int count;
 }
