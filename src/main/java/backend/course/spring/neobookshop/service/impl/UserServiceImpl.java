@@ -4,7 +4,6 @@ import backend.course.spring.neobookshop.dto.request.LoginRequest;
 import backend.course.spring.neobookshop.dto.request.RegistrationRequest;
 import backend.course.spring.neobookshop.dto.response.AuthenticationResponse;
 import backend.course.spring.neobookshop.entity.User;
-import backend.course.spring.neobookshop.execption.NotFoundException;
 import backend.course.spring.neobookshop.execption.UserAlreadyExistException;
 import backend.course.spring.neobookshop.repository.UserRepository;
 import backend.course.spring.neobookshop.service.UserService;
@@ -19,7 +18,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     @Override
     public String registration(RegistrationRequest registrationRequest) {
-        if(userRepository.findByUsername(registrationRequest.getUsername()).isPresent()) {
+        if(userRepository.findUserByUsername(registrationRequest.getUsername()).isPresent()) {
             throw new UserAlreadyExistException("User with username: " + registrationRequest.getUsername() + " already exist!");
         }
 
