@@ -4,8 +4,12 @@ import backend.course.spring.neobookshop.dto.request.LoginRequest;
 import backend.course.spring.neobookshop.dto.request.RegistrationRequest;
 import backend.course.spring.neobookshop.dto.response.AuthenticationResponse;
 import backend.course.spring.neobookshop.entity.User;
+import backend.course.spring.neobookshop.enums.Role;
+import backend.course.spring.neobookshop.execption.IncorrectDataException;
+import backend.course.spring.neobookshop.execption.NotFoundException;
 import backend.course.spring.neobookshop.execption.UserAlreadyExistException;
 import backend.course.spring.neobookshop.repository.UserRepository;
+import backend.course.spring.neobookshop.security.jwt.JwtService;
 import backend.course.spring.neobookshop.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     @Override
     public String registration(RegistrationRequest registrationRequest) {
         if(userRepository.findUserByUsername(registrationRequest.getUsername()).isPresent()) {
@@ -31,6 +36,7 @@ public class UserServiceImpl implements UserService {
                 .email(registrationRequest.getEmail())
                 .firstname(registrationRequest.getFirstname())
                 .lastname(registrationRequest.getLastname())
+                .role(Role.ROLE_ADMIN)
                 .password(passwordEncoder.encode(registrationRequest.getPassword()))
                 .build();
         userRepository.save(user);
@@ -39,6 +45,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AuthenticationResponse login(LoginRequest loginRequest) {
-        return null;
+        User user = userRepository.findUserByUsername(loginRequest.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found!"));
+
+        if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            var jwtToken = jwtService.generateToken(user);
+            return AuthenticationResponse.builder()
+                    .accessToken(jwtToken)
+                    .build();
+        } else {
+            throw new IncorrectDataException("Username or password incorrect!");
+        }
     }
 }
